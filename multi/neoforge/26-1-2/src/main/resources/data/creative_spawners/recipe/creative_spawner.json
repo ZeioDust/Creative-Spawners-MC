@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": "minecraft:diamond_block",
+    "G": "minecraft:gold_block",
+    "E": "creative_spawners:empty_spawner",
+    "N": "minecraft:netherrack",
+    "X": "minecraft:cactus"
+  },
+  "pattern": [
+    " D ",
+    "GEN",
+    " X "
+  ],
+  "result": {
+    "id": "creative_spawners:creative_spawner"
+  }
+}

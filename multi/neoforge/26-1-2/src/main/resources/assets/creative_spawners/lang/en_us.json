@@ -1,0 +1,8 @@
+{
+  "itemGroup.creative_spawners": "Creative Spawners",
+  "block.creative_spawners.empty_spawner": "Empty Spawner",
+  "block.creative_spawners.item_spawner": "Item Spawner",
+  "block.creative_spawners.creative_spawner": "Creative Spawner",
+  "item.creative_spawners.creative_inventory": "Creative Inventory",
+  "tooltip.creative_spawners.spawns": "Spawns: "
+}

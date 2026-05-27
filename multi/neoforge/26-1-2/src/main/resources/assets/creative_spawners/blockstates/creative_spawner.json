@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "creative_spawners:block/creative_spawner"
+    }
+  }
+}
