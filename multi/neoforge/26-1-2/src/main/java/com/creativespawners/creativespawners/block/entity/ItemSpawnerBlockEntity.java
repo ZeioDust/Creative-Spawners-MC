@@ -3,20 +3,22 @@ package com.creativespawners.creativespawners.block.entity;
 import com.creativespawners.creativespawners.block.ItemSpawnerBlock;
 import com.creativespawners.creativespawners.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 public class ItemSpawnerBlockEntity extends BlockEntity {
-    private Item spawnedItem = Items.AIR;
+    private ItemStack spawnedStack = ItemStack.EMPTY;
     private int tickCounter = 0;
 
     private static final int BASE_INTERVAL = 200;
@@ -27,26 +29,23 @@ public class ItemSpawnerBlockEntity extends BlockEntity {
         super(ModBlockEntities.ITEM_SPAWNER.get(), pos, state);
     }
 
-    public Item getSpawnedItem() {
-        return spawnedItem;
+    public ItemStack getSpawnedStack() {
+        return spawnedStack;
     }
 
-    public void setSpawnedItem(Item item) {
-        this.spawnedItem = item;
+    public void setSpawnedStack(ItemStack stack) {
+        this.spawnedStack = stack.copyWithCount(1);
         setChanged();
-    }
-
-    public String getSpawnedItemId() {
-        var key = BuiltInRegistries.ITEM.getKey(spawnedItem);
-        return key != null ? key.toString() : "";
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+        }
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        var key = BuiltInRegistries.ITEM.getKey(spawnedItem);
-        if (key != null) {
-            output.putString("SpawnedItemId", key.toString());
+        if (!spawnedStack.isEmpty()) {
+            output.store("SpawnedStack", ItemStack.CODEC, spawnedStack);
         }
         output.putInt("TickCounter", tickCounter);
     }
@@ -54,18 +53,22 @@ public class ItemSpawnerBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        input.getString("SpawnedItemId").ifPresent(idStr -> {
-            var id = Identifier.tryParse(idStr);
-            if (id != null) {
-                Item found = BuiltInRegistries.ITEM.getValue(id);
-                if (found != null) spawnedItem = found;
-            }
-        });
+        spawnedStack = input.read("SpawnedStack", ItemStack.CODEC).orElse(ItemStack.EMPTY);
         tickCounter = input.getIntOr("TickCounter", 0);
     }
 
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveCustomOnly(registries);
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, ItemSpawnerBlockEntity be) {
-        if (be.spawnedItem == Items.AIR) return;
+        if (be.spawnedStack.isEmpty()) return;
 
         be.tickCounter++;
         boolean upgraded = state.getValue(ItemSpawnerBlock.UPGRADED);
@@ -81,7 +84,7 @@ public class ItemSpawnerBlockEntity extends BlockEntity {
         BlockPos dropPos = findDropPosition(level, spawnerPos);
         if (dropPos == null) return;
 
-        ItemStack toDrop = new ItemStack(be.spawnedItem);
+        ItemStack toDrop = be.spawnedStack.copy();
         double x = dropPos.getX() + 0.5;
         double y = dropPos.getY() + 0.5;
         double z = dropPos.getZ() + 0.5;

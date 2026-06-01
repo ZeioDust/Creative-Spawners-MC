@@ -87,7 +87,7 @@ public class ItemSpawnerBlock extends BaseEntityBlock {
                     serverLevel.sendParticles(ParticleTypes.ENCHANT, ox, oy, oz, 1, 0, 0.1, 0, 0.05);
                 }
             }
-            return InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS_SERVER;
         }
         return InteractionResult.PASS;
     }
@@ -102,14 +102,4 @@ public class ItemSpawnerBlock extends BaseEntityBlock {
         }
     }
 
-    @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ItemSpawnerBlockEntity be) {
-            Item item = be.getSpawnedItem();
-            if (item != Items.AIR) {
-                popResource(level, pos, new ItemStack(item));
-            }
-        }
-        return super.playerWillDestroy(level, pos, state, player);
-    }
 }

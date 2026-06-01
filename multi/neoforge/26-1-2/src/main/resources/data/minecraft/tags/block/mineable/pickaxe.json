@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "creative_spawners:empty_spawner",
+    "creative_spawners:item_spawner",
+    "creative_spawners:creative_spawner"
+  ]
+}

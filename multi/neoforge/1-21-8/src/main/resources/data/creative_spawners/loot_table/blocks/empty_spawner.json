@@ -1,0 +1,4 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "creative_spawners:blocks/empty_spawner"
+}

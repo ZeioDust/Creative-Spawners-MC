@@ -21,7 +21,21 @@ repositories {
 }
 
 base {
-    archivesName = mod_id
+    archivesName = "${mod_id}-${loader}.${minecraft_version}"
+}
+
+tasks.withType(Jar).configureEach {
+    archiveVersion = ''
+}
+
+// Copy the built jar into the shared root build/libs after every build.
+tasks.register('copyToRootLibs', Copy) {
+    dependsOn tasks.named('jar')
+    from tasks.named('jar').flatMap { it.archiveFile }
+    into layout.projectDirectory.dir('../../../build/libs')
+}
+tasks.named('build') {
+    dependsOn 'copyToRootLibs'
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)

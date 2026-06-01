@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "upgraded=false": {
+      "model": "creative_spawners:block/item_spawner"
+    },
+    "upgraded=true": {
+      "model": "creative_spawners:block/item_spawner_upgraded"
+    }
+  }
+}

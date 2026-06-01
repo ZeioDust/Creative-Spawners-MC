@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "creative_spawners:block/empty_spawner"
+  }
+}

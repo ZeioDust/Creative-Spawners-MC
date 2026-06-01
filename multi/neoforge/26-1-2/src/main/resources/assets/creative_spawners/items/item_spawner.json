@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "creative_spawners:block/item_spawner",
+    "model": {
+      "type": "creative_spawners:item_spawner_inner"
+    }
+  }
+}

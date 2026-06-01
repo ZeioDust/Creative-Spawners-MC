@@ -2,14 +2,18 @@ package com.creativespawners.creativespawners.recipe;
 
 import com.creativespawners.creativespawners.registry.ModItems;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
 public class ItemSpawnerRecipe extends CustomRecipe {
@@ -60,11 +64,24 @@ public class ItemSpawnerRecipe extends CustomRecipe {
 
         ItemStack result = new ItemStack(ModItems.ITEM_SPAWNER.get());
         var key = BuiltInRegistries.ITEM.getKey(ingredient.getItem());
-        if (key != null) {
-            CompoundTag tag = new CompoundTag();
-            tag.putString("SpawnedItemId", key.toString());
-            result.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        if (key == null) return result;
+
+        CompoundTag tag = new CompoundTag();
+        tag.putString("SpawnedItemId", key.toString());
+
+        // If it's an enchanted book, tag the stored enchantment so the spawner can
+        // reconstruct it and show a name like "Impaling V Spawner".
+        ItemEnchantments enchantments = ingredient.get(DataComponents.STORED_ENCHANTMENTS);
+        if (enchantments != null && !enchantments.isEmpty()) {
+            Holder<Enchantment> enchantment = enchantments.keySet().iterator().next();
+            Identifier id = enchantment.unwrapKey().map(k -> k.identifier()).orElse(null);
+            if (id != null) {
+                tag.putString("BookEnch", id.toString());
+                tag.putInt("BookLvl", enchantments.getLevel(enchantment));
+            }
         }
+
+        result.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return result;
     }
 
